@@ -2,13 +2,13 @@ version: 2
 jobs:
   foo:
     docker:
-      - image: circleci/node:1.11.12-buster
+      - image: circleci/node:latest
     steps:
       - checkout
       - run: echo "Hello, Buster"
   bar:
     docker:
-      - image: circleci/node:1.11.12-buster
+      - image: circleci/node:latest
     steps:
       - checkout
       - run: echo "Howdy, Buster"
