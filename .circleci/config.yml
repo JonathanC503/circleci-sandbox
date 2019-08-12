@@ -6,7 +6,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      # These two tests should run in parallel. Make it so!
+      
       - run: 
             command: |
                 circleci tests glob "src/test_hello.sh" "src/test_goodbye.sh"
