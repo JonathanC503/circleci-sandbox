@@ -1,38 +1,25 @@
- # Orb 'circleci/windows-tools@0.0.4' resolved to 'circleci/windows-tools@0.0.4'
-version: 2.1
-
-orbs:
-   win: circleci/windows-tools@0.0.4
-
+version: 2
 jobs:
-  build:
-    machine:
-      image: windows-server-2019
+  foo:
+    docker:
+      - image: circleci/node:latest
     parallelism: 2
+    resource_class: Large
     steps:
-    - checkout
-    - run:
-        command: choco install jdk8 -y
-    - run:
-        command: choco install Maven -y
-    - run:
-        command: choco install googlechrome --version 75.0.3770.90 --ignore-checksums
-    - run:
-        command: setx path "%path%;c:\Program Files (x86)\Google\Chrome\Application\"
-    - run:
-        command: refreshenv
-    - run:
-        command: mvn -v
-    - run:
-        command: mvn clean verify
-    - store_test_results:
-        path: ./target
-    - store_artifacts:
-        path: ./target
-    resource_class: windows.medium
-    shell: powershell.exe -ExecutionPolicy Bypass
+      - checkout
+      - run: echo "Hello, Buster"
+  bar:
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - checkout
+      - run: echo "Howdy, Buster"
+      - run:
+          name: Print the Current Time
+          command: date
 workflows:
   version: 2
-  workflow:
+  build_and_test:
     jobs:
-    - build
+      - foo
+      - bar
