@@ -2,9 +2,9 @@ version: 2
 jobs:
   foo:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
+      command: /sbin/init
     parallelism: 2
-    resource_class: large
     steps:
       - checkout
       - run: echo "Hello, Buster"
