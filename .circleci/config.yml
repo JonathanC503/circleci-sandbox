@@ -2,8 +2,7 @@ version: 2
 jobs:
   foo:
     docker:
-    - image: circleci/build-image:ubuntu-14.04-XXL-upstart-1189-5614f37
-      command: /sbin/init
+    - image: circleci/ruby:latest
     parallelism: 2
     steps:
       - checkout
