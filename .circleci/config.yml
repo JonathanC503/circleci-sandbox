@@ -6,7 +6,7 @@ jobs:
     parallelism: 2
     steps:
       - checkout
-      - run: echo "Hello, Buster"
+      - run: echo "Hello, Ruby Latest Image"
   bar:
     docker:
       - image: circleci/node:latest
