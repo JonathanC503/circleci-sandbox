@@ -3,6 +3,7 @@ jobs:
   foo:
     docker:
     - image: circleci/ruby:latest
+    - resource_class: large
     parallelism: 2
     steps:
       - checkout
