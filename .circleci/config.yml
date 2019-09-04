@@ -1,15 +1,18 @@
 version: 2
 jobs:
   foo:
-    docker:
+    machine:
       - image: circleci/node:latest
-      - resource_class: xlarge
+    environment:
+        resource_class: xlarge
     steps:
       - checkout
       - run: echo "Hello, Buster"
   bar:
     docker:
       - image: circleci/node:latest
+    environment:
+        resource_class: xlarge
     steps:
       - checkout
       - run: echo "Howdy, Buster"
