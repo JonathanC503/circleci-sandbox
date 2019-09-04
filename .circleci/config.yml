@@ -1,19 +1,18 @@
 version: 2
 jobs:
   foo:
-    machine:
-    - image: circleci/ruby:latest
-    - resource_class: large
-    parallelism: 2
+    docker:
+      - image: circleci/node:latest
+      - resource_class: xlarge
     steps:
       - checkout
-      - run: echo "Hello, Ruby Latest Image"
+      - run: echo "Hello, Buster"
   bar:
     docker:
       - image: circleci/node:latest
     steps:
       - checkout
-      - run: echo "Hello, Buster"
+      - run: echo "Howdy, Buster"
       - run:
           name: Print the Current Time
           command: date
