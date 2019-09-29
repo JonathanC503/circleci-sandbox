@@ -1,26 +1,25 @@
 version: 2
 jobs:
-  foo:
-    machine:
-      image: ubuntu-1604:201903-01
-    resource_class: large
-    steps:
-      - checkout
-      - run: echo "Hello, Machine Large"
-  bar:
+  test:
     docker:
-      - image: circleci/node:latest
-    environment:
-        resource_class: xlarge
+      - image: circleci/node
+    parallelism: 2
     steps:
       - checkout
-      - run: echo "Howdy, Buster"
+      
+      - run: 
+            command: |
+                circleci tests glob "src/test_hello.sh" "src/test_goodbye.sh"
       - run:
-          name: Print the Current Time
-          command: date
+          name: Run Hello test
+          command: |
+            bash src/test_hello.sh
+      - run:
+          name: Run Goodbye test
+          command: |
+            bash src/test_goodbye.sh
 workflows:
   version: 2
-  build_and_test:
+  test:
     jobs:
-      - foo
-      - bar
+      - test
