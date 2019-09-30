@@ -7,10 +7,9 @@ job-defaults: &job-defaults
   steps:
     - run: echo "task A"
     - run: echo "task B"
+    - run: echo "task C"
 
 jobs:
 
   build:
     <<: *job-defaults
-    steps:
-      - run: echo "task C"
