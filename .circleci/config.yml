@@ -1,15 +1,26 @@
 version: 2
-
-
-job-defaults: &job-defaults
-  docker:
-    - image: alpine
-  steps:
-    - run: echo "task A"
-    - run: echo "task B"
-    - run: echo "task C"
-
 jobs:
-
-  build:
-    <<: *job-defaults
+  foo:
+    machine:
+      image: ubuntu-1604:201903-01
+    resource_class: large
+    steps:
+      - checkout
+      - run: echo "Hello, Machine Large"
+  bar:
+    docker:
+      - image: circleci/node:latest
+    environment:
+        resource_class: xlarge
+    steps:
+      - checkout
+      - run: echo "Howdy, Buster"
+      - run:
+          name: Print the Current Time
+          command: date
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - foo
+      - bar
