@@ -3,7 +3,6 @@ jobs:
   foo:
     machine:
       image: windows-server-2019-vs2019:edge
-    resource_class: large
     steps:
       - checkout
       - run: echo "Hello, Machine Large"
