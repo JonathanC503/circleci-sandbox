@@ -1,8 +1,6 @@
 version: 2
-jobs:
-  foo:
-    machine:
-      image: windows-server-2019-vs2019:edge
+machine:
+    image: windows-server-2019-vs2019:edge
     steps:
       - checkout
       - run: echo "Hello, Edge Machine"
