@@ -1,6 +1,5 @@
 version: 2
-jobs:
-  build:
+build:
     machine:
       image: windows-server-2019-vs2019:edge
     steps:
