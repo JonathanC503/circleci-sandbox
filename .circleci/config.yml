@@ -1,26 +1,19 @@
 version: 2
 jobs:
   build:
-    macos:
-      xcode: 11.1.0
+    docker:
+    - image: circleci/python:latest
+      environment:
+        CIRCLE_TEST_REPORTS: test
+        TESTOPTS: --ci-dir=${CIRCLE_TEST_REPORTS}/reports
     steps:
     - checkout
-    - attach_workspace:
-        at: ~/project
-    - run:
-        name: Install XCHTMLReport
-        command: |
-          brew unlink xchtmlreport
-          brew install --HEAD https://raw.githubusercontent.com/TitouanVanBelle/XCTestHTMLReport/develop/xchtmlreport.rb
-    - run:
-        name: Adding XCHTMLReport to Fastlane
-        command: fastlane add_plugin xchtmlreport
-    - persist_to_workspace:
-        root: ~/project
-        paths:
-        - .
+    - restore_cache:
+        keys: v1-dep-{{ arch }}
+    - run: echo $CIRCLE_TEST_REPORTS
+    - run: echo $TESTOPTS
 workflows:
-  all_the_things:
+  version: 2
+  workflow:
     jobs:
     - build
-  version: 2
