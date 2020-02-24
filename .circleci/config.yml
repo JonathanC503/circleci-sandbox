@@ -1,21 +1,12 @@
-version: 2
+version: 2.1
+
 jobs:
   build:
-    docker:
-    - image: circleci/python:latest
-      environment:
-        CIRCLE_TEST_REPORTS: test
-        TESTOPTS: --ci-dir=${CIRCLE_TEST_REPORTS}/reports
+    machine:
+      - image: circleci/classic:201808-01
+    environment:
+      CIRCLE_COMPARE_URL: << pipeline.project.git_url >>/compare/<< pipeline.git.base_revision >>..<<pipeline.git.revision>>
+    working_directory: ~/main
     steps:
-    - checkout
-    - restore_cache:
-        keys: v1-dep-{{ arch }}
-    - run: echo $CIRCLE_TEST_REPORTS
-    - run: echo $TESTOPTS
-workflows:
-  version: 2
-  workflow:
-    jobs:
-    - build
-
-# Just another test
+      - run: echo "This is pipeline ID << pipeline.id >>"
+      - run: echo $CIRCLE_COMPARE_URL
