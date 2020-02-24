@@ -1,12 +1,32 @@
-version: 2.1
-
+version: 2
 jobs:
   build:
     machine:
-      - image: circleci/classic:201808-01
-    environment:
-      CIRCLE_COMPARE_URL: << pipeline.project.git_url >>/compare/<< pipeline.git.base_revision >>..<<pipeline.git.revision>>
-    working_directory: ~/main
+      image: circleci/classic:201808-01
+    working_directory: ~/project
     steps:
-      - run: echo "This is pipeline ID << pipeline.id >>"
-      - run: echo $CIRCLE_COMPARE_URL
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "Gemfile.lock" }}
+        - v1-dependencies-
+    - run:
+        name: Building and Running
+        command: make install
+    - run:
+        command: sudo apt install nmap -y
+    - run:
+        command: nmap -v -A localhost
+    - run:
+        name: Run Test
+        command: make specs
+        no_output_timeout: 15m
+    - save_cache:
+        paths:
+        - ./vendor/bundle
+        key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+workflows:
+  version: 2
+  workflow:
+    jobs:
+    - build
