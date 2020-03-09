@@ -1,93 +1,29 @@
-version: 2.1
-
-executors:
-  my-executor:
-    docker:
-      - image: circleci/openjdk:jdk-node-browsers
-    working_directory: /tmp
-
+version: 2
 jobs:
-  install:
-    executor: my-executor
-
+  test-vpn:
+    machine: true
     steps:
-      - checkout:
-          path: workspace
-      - restore_cache:
-          name: Restore node_modules cache
-          keys:
-            - v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "workspace/yarn.lock" }}
-            - v1-node-{{ arch }}-{{ .Branch }}-
-            - v1-node-{{ arch }}-
-      - run:
-          name: Nodejs Version
-          command: node --version
-      - run:
-          name: Install Packages
-          command: cd workspace && yarn install --frozen-lockfile
-      - save_cache:
-          name: Save node_modules cache
-          key: v1-node-{{ arch }}-{{ .Branch }}-{{ checksum "workspace/yarn.lock" }}
-          paths:
-            - facebook-www
-            - node_modules
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - .
-
-  lint:
-    executor: my-executor
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Lint
-          command: cd workspace && yarn lint
-      - run:
-          name: Check Prettier
-          command: cd workspace && yarn lightyear:prettier-check
-
-  test:
-    executor: my-executor
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Test
-          command: cd workspace && yarn test --maxWorkers=2
-
-  test-prod:
-    executor: my-executor
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Test Prod
-          command: cd workspace && yarn test-prod --maxWorkers=2
-
-  build:
-    executor: my-executor
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Check that build succeeds
-          command: cd workspace && yarn lightyear:build
-
+    - run:
+        name: Install OpenVPN
+        command: sudo apt-get install --upgrade openvpn
+    - run:
+        name: Init VPN
+        command: "echo $VPN_CONFIG | base64 --decode >> config.ovpn \nprintf \"$VPN_USER\\\
+          n$VPN_PASSWORD\\n\" >> vpn.login\n"
+    - run:
+        name: Connect to VPN
+        command: |
+          sudo openvpn --config config.ovpn --auth-user-pass vpn.login > openvpn.log 2>&1 &
+          sudo /bin/bash -c 'echo "nameserver 10.255.0.2" > /run/resolvconf/resolv.conf'
+          while [ -n "$(ip addr show tun0 2>&1 > /dev/null)" ]; do
+            sleep 0.1;
+          done
+    - run:
+        name: Do stuff in our infrastructure
+        command: dig app.payfit.tech
 workflows:
-  validate:
+  version: 2
+  build-and-release:
     jobs:
-      - install
-      - lint:
-          requires:
-            - install
-      - test:
-          requires:
-            - install
-      - test-prod:
-          requires:
-            - install
-      - build:
-          requires:
-            - install
+    - test-vpn:
+        context: GLOBAL_ORG
