@@ -19,4 +19,4 @@ jobs:
           mention: "@jonathan"
           message: "Your build did a thing!"
           color: "#42e2f4"
-          webhook: "webhook"
+       
