@@ -13,3 +13,7 @@ jobs:
             pyenv install 3.7.2
       - run:      
            pyenv versions
+      - slack/status:
+          message: "Your build did a thing!"
+          color: "#42e2f4"
+          webhook: "webhook"
