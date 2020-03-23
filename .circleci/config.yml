@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
 
 jobs:
   build:
@@ -10,4 +12,4 @@ jobs:
             source ~/.circlerc
             pyenv install 3.7.2
       - run:      
-            cat ~/.pyenv/versions
+           pyenv versions
