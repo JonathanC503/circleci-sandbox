@@ -8,6 +8,6 @@ jobs:
       - run:
           command: |
             source ~/.circlerc
-            pyenv install $PYTHON_VERSION
+            pyenv install 3.7.2
       - run:      
             cat ~/.pyenv/versions
