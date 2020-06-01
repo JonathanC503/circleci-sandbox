@@ -1,84 +1,20 @@
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@2.1.1
 jobs:
-  build:
-    working_directory: ~/App
-    parallelism: 2
-    shell: /bin/bash --login
-    environment:
-      RAILS_ENV: test
-      RACK_ENV: test
+  install-node-12:
     docker:
-      - image: circleci/ruby:2.5.1-browsers
-        environment:
-          RAILS_ENV: test
-          DB_HOST: localhost
-          REDIS_HOST: 127.0.0.1
-      - image: circleci/mysql:5.6.37-ram
-        command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --innodb-large-prefix=true --innodb-file-format=Barracuda --sort-buffer-size=67108864
-      - image: redis
-
+      - image: "cimg/base:2020.05"
     steps:
-      # Machine Setup
-      # If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
-      # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
       - checkout
-      # Restore the dependency cache
-      - restore_cache:
-          keys:
-          # This branch if available
-          - v1-dep-{{ .Branch }}-
-          # Default branch if not
-          - v1-dep-master-
-          # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-          - v1-dep-
-      - run:
-          name: Bundle Install
-          command: |-
-            bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3
-      # The following line was run implicitly in your 1.0 builds based on what CircleCI inferred about the structure of your project. In 2.0 you need to be explicit about which commands should be run. In some cases you can discard inferred commands if they are not relevant to your project.
-      # Save dependency cache
-      - save_cache:
-          key: v1-dep-{{ .Branch }}-{{ epoch }}
-          paths:
-          - vendor/bundle
-          - ~/.bundle
-          - ~/.cache/bower
-      - run:
-          name: Generate config/database.yml
-          command: |-
-            mkdir -p config && echo 'test:
-              adapter: mysql2
-              database: circle_test
-              username: root
-              host: 127.0.0.1
-              encoding: utf8mb4
-              collation: utf8mb4_general_ci
-            ' > config/database.yml
-      - run:
-          name: Generate config/secrets.yml
-          command: |-
-            echo "test:
-                 Things go here
-            " > config/secrets.yml
-      - run:
-          name: Create / Migrate Database
-          command: |-
-            bundle exec rake db:create db:migrate --trace
-
-      # GPG version 1 is needed because version 2 no longer really allows for passing the password to encrypt on the command line.
-      - run: sudo apt-get update
-
-      # TEST_FILES is broken out into it's own variable because of random bash parsing issues which case "bundler: failed to load command: rspec"
-      - run:
-          name: Rspec Unit Tests
-          no_output_timeout: "20m"
-          command: |-
-            bundle exec rspec --require spec_helper --format RspecJunitFormatter --out /tmp/circle-tests/rspec/rspec.xml --format progress $(circleci tests glob "spec/**/*_spec.rb" | circleci tests split --split-by=timings)
-      # Teardown
-      #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
-      # Save test results
-      - store_test_results:
-          path: /tmp/circle-tests
-      # Save artifacts - these are viewable in the Artifacts tab of the CircleCI interface after a build is complete
-      - store_artifacts:
-          path: /tmp/circle-tests
+      - node/install:
+          install-npm: false
+          node-version: 12.16.2
+      - node/install-yarn:
+          version: 1.22.4
+      - run: node --version
+      - run: yarn
+workflows:
+  install-n:
+    jobs:
+      - install-node-12
