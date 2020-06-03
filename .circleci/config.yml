@@ -14,10 +14,11 @@ jobs:
           version: 1.22.4
       - run: node --version
       - run: yarn
+      - run:
+          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+          when: always
 workflows:
   install-n:
     jobs:
       - install-node-12
-      - run:
-          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
-          when: always
+      
