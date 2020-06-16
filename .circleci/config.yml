@@ -1,36 +1,18 @@
-  
 version: 2.1
-
-executors:
-  linux:
-    docker:
-      - image: cimg/base:2020.01
-  macos:
-    macos:
-      xcode: 11.4
-
-orbs:
-  node: circleci/node@2.0.0
-
 jobs:
-  test:
-    parameters:
-      os:
-        type: executor
-      node-version:
-        type: string
-    executor: << parameters.os >>
+  build:
+    docker: circleci/node
     steps:
-      - checkout
-      - node/install:
-          node-version: << parameters.node-version >>
-          install-yarn: true
-      - run: yarn test
-workflows:
-  all-tests:
-    jobs:
-      - test:
-          matrix:
-            parameters:
-              os: [linux, macos]
-              node-version: ["10.9.0", "11.9.0", "12.9.1", "13.9.0"]
+       - checkout
+       - run
+      name: "'run' statements can actually contain a 'name' and 'command' argument as well"
+        command: | 
+          echo "You can even have multiline commands."
+      - restore_cache:
+          keys:
+          - v1-dependencies-
+      - run: mkdir ~/cache/
+      - run: echo "testfile" > ~/cache/log.txt
+      - save_cache:
+          key: v1-dependencies-
+          paths: ~/cache
