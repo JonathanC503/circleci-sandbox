@@ -1,24 +1,9 @@
-version: 2.1
-orbs:
-  node: circleci/node@2.1.1
+version: 2
 jobs:
-  install-node-12:
-    docker:
-      - image: "cimg/base:2020.05"
+  build:
+    docker: # use the docker executor type; machine and macos executors are also supported
+      - image: circleci/node # the primary container, where your job's commands are run
     steps:
-      - checkout
-      - node/install:
-          install-npm: false
-          node-version: 12.16.2
-      - node/install-yarn:
-          version: 1.22.4
-      - run: node --version
-      - run: yarn
-      - run:
-          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
-          when: always
-workflows:
-  install-n:
-    jobs:
-      - install-node-12
+      - checkout # check out the code in the project directory
+      - run: echo "hello world" # run the `echo` command
       
