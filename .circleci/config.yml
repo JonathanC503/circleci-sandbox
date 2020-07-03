@@ -1,16 +1,26 @@
 version: 2
 jobs:
   build:
-    machine:
-      image: windows-server-2019-vs2019:stable
+    docker:
+    - image: circleci/node:latest
     steps:
-    - checkout
     - run:
-        command: choco install wixtoolset
-    resource_class: windows.medium
-    shell: powershell.exe -ExecutionPolicy Bypass
+        name: Simulate test results
+        command: |
+          TESTDIR=bazelcache/.cache/build/testlogs/packages/bazel/test/protractor/test_chromium-local
+          SYMLINKDIR=dist/testlogs
+          mkdir -p $TESTDIR
+          echo "<testsuites name=\"jest\"><testsuite name=\"a\" tests=\"1\" errors=\"0\"><testcase name=\"b\"></testcase></testsuite></testsuites>" > $TESTDIR/test1.xml
+          echo "<testsuites name=\"jest\"><testsuite name=\"b\" tests=\"1\" errors=\"0\"><testcase name=\"b\"></testcase></testsuite></testsuites>" > $TESTDIR/test2.xml
+          echo "<testsuites name=\"jest\"><testsuite name=\"c\" tests=\"1\" errors=\"0\"><testcase name=\"b\"></testcase></testsuite></testsuites>" > $TESTDIR/test3.xml
+          mkdir -p $SYMLINKDIR
+          ln -s bazelcache/.cache/build $SYMLINKDIR
+    - store_artifacts:
+        path: dist/testlogs
+    - store_test_results:
+        path: dist/testlogs
 workflows:
   version: 2
-  workflow:
+  build-and-deploy:
     jobs:
     - build
