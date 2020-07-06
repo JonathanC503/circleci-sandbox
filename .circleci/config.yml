@@ -29,6 +29,7 @@ jobs:
       - run:
           name: Install Wix
           command: choco install wixtoolset
+          no_output_timeout: 20m
           shell: powershell.exe
       - run:
           name: Copy config file 
