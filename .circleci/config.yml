@@ -26,7 +26,7 @@ jobs:
           name: Save Velociraptor.exe 
           command: $ProgressPreference = "SilentlyContinue"; Invoke-WebRequest https://github.com/Velocidex/velociraptor/releases/download/v0.4.5/velociraptor-v0.4.5-windows-amd64.exe -OutFile ./velociraptor/docs/wix/output/Velociraptor.exe
           shell: powershell.exe
-      -run:
+      - run:
           name: Install dotnet 3.5
           command: choco install dotnet3.5 --notsilent --version=3.5
           shell: powershell.exe
