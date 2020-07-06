@@ -15,6 +15,10 @@ jobs:
         default: "0.4.5"
     steps:
       - checkout
+      - run:
+          name: Framework Core
+          command: Install-WindowsFeature Net-Framework-Core
+          shell: powershell.exe
       - run: 
           name: Clone velociraptor repo 
           command: git clone https://github.com/Velocidex/velociraptor.git
