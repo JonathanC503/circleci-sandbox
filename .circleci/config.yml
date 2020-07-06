@@ -10,7 +10,6 @@ jobs:
     resource_class: windows.medium
     shell: powershell.exe -ExecutionPolicy Bypass
 workflows:
-  version: 2
-  workflow:
+  Just a workflow:
     jobs:
     - build
