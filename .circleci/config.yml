@@ -28,7 +28,7 @@ jobs:
           shell: powershell.exe
       - run:
           name: Install Wix
-          command: choco install--notsilent wixtoolset
+          command: choco install --notsilent wixtoolset
           no_output_timeout: 20m
           shell: powershell.exe
       - run:
