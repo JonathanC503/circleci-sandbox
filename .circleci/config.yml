@@ -1,102 +1,50 @@
 version: 2.1
-
-orbs:
-  win: circleci/windows@1.0.0
-
 jobs:
-  build:
-    executor:
-      name: win/vs2019
-      shell: bash.exe
-    working_directory: ~/rss-velociraptor
-    parameters:
-      version:
-        type: string
-        default: "0.4.5"
-    steps:
-      - checkout
-      - run: 
-          name: Clone velociraptor repo 
-          command: git clone https://github.com/Velocidex/velociraptor.git
-          shell: powershell.exe 
-      - run: 
-          name: Create output directory 
-          command: mkdir ./velociraptor/docs/wix/output
-      - run: 
-          name: Save Velociraptor.exe 
-          command: $ProgressPreference = "SilentlyContinue"; Invoke-WebRequest https://github.com/Velocidex/velociraptor/releases/download/v0.4.5/velociraptor-v0.4.5-windows-amd64.exe -OutFile ./velociraptor/docs/wix/output/Velociraptor.exe
-          shell: powershell.exe
-      - run:
-          name: Install dotnet 3.5
-          command: choco install dotnet3.5 --notsilent --version=3.5
-          shell: powershell.exe
-      - run:
-          name: Install Wix
-          command: choco install wixtoolset
-          shell: powershell.exe
-      - run:
-          name: Copy config file 
-          command: cp ./endpoints/Velociraptor.config.yaml.template ./velociraptor/docs/wix/output/Velociraptor.config.yaml.template
-          shell: powershell.exe
-      - run:
-          name: Copy client list
-          command: cp ./endpoints/build/clients ./velociraptor/docs/wix/
-          shell: powershell.exe
-      - run:
-          name: Copy build script
-          command: cp ./endpoints/build/build-windows.ps1 ./velociraptor/docs/wix/
-          shell: powershell.exe
-      - run:
-          name: Build MSIs
-          command: ./velociraptor/docs/wix/build-windows.ps1
-          shell: powershell.exe
-      - run:
-          name: Copy MSIs
-          command: cp ./velociraptor/docs/wix/velociraptor_*.msi ./msi/unsigned/<<parameters.version>>/
-          shell: powershell.exe
-  deploy:
-    executor:
-      name: win/vs2019
-      shell: bash.exe
-    working_directory: ~/rss-velociraptor/velociraptor/docs/wix/output
-    parameters:
-      profile-name:
-        type: string
-        default: "default"
-      aws-access-key-id:
-        type: env_var_name
-        default: AWS_ACCESS_KEY_ID
-      aws-secret-access-key:
-        type: env_var_name
-        default: AWS_SECRET_ACCESS_KEY
-      aws-region:
-        type: env_var_name
-        default: AWS_DEFAULT_REGION
-      configure-default-region:
-        type: boolean
-        default: true
+  build-and-test:
+    macos:
+      xcode: 11.3.0
+    environment:
+      FL_OUTPUT_DIR: output
+
     steps:
       - checkout
       - run:
-          name: Configure AWS Access Key ID
-          command: aws configure set aws_access_key_id $<<parameters.aws-access-key-id>> --profile <<parameters.profile-name>>
+          name: Install CocoaPods
+          command: pod install --verbose
+
       - run:
-          name: Configure AWS Secret Access Key
-          command: aws configure set aws_secret_access_key $<<parameters.aws-secret-access-key>> --profile <<parameters.profile-name>>
-      #- run:
-      #    name: Deploy to S3
-      #    branch: master
-      #    command: aws s3 cp . s3://recon-cdn/velociraptor/ --recursive --region us-east-1 --acl public-read --exclude ".*" --exclude artifacts --exclude README.md
+          name: Build and run tests
+          command: fastlane scan
+          environment:
+            SCAN_DEVICE: iPhone 8
+            SCAN_SCHEME: WebTests
+
+      - store_test_results:
+          path: output/scan
+      - store_artifacts:
+          path: output
+
+  swiftlint:
+    docker:
+      - image: bytesguy/swiftlint:latest
+    steps:
+      - checkout
+      - run: swiftlint lint --reporter junit | tee result.xml
+      - store_artifacts:
+          path: result.xml
+      - store_test_results:
+          path: result.xml
+
+  danger:
+    docker:
+      - image: bytesguy/danger:latest
+    steps:
+      - checkout
+      - run: danger
+
 workflows:
-  build-deploy:
+  build-test-lint:
     jobs:
-      - build:
-          filters:
-            branches:
-              only: master
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+      - swiftlint
+      - danger
+      - build-and-test
