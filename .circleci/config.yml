@@ -28,11 +28,11 @@ jobs:
           shell: powershell.exe
       - run:
           name: Install dotnet 3.5
-          command: choco install dotnet3.5 --notsilent --version=3.5
+          command: choco install dotnet3.5 --notsilent --version=3.5 --verbose
           shell: powershell.exe
       - run:
           name: Install Wix
-          command: choco install wixtoolset
+          command: choco install wixtoolset --verbose
           shell: powershell.exe
       - run:
           name: Copy config file 
