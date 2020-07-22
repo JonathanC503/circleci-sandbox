@@ -1,56 +1,19 @@
 version: 2.1
-jobs:
-  failed-job:
-    docker:
-      - image: circleci/golang:1.11.0
-    steps:
-      - checkout
-      - run: sleep 30
-      - run: exit 1
-  job-1:
-    docker:
-      - image: circleci/golang:1.11.0
-    steps:
-      - checkout
-      - run: sleep 60
-  job-2:
-    docker:
-      - image: circleci/golang:1.11.0
-    steps:
-      - checkout
-      - run: sleep 60
-  auto-cancel:
-    docker:
-      - image: circleci/golang:1.11.0
-    steps:
-      - checkout
-      - run:
-          name: auto-cancel
-          command: |
-            while true; do
-              json=$(curl -s -H 'Accept: application/json' -X GET https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/job?circle-token=${CIRCLECI_TOKEN})
-              is_failed=$(echo $json | jq '.items | any(.status == "failed")')
-              is_pending=$(echo $json | jq '.items | any(.status == "running")')
-              if [ "$is_failed" == "true" ]; then
-                echo "Cancel workflow"
-                curl -s -H 'Accept: application/json' -X POST https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/cancel?circle-token=${CIRCLECI_TOKEN}
-                exit 0
-              elif [ "$is_pending" == "false" ]; then
-                echo "other jobs finished"
-                exit 0
-              else
-                echo "waiting other jobs"
-              fi
-              sleep 10
-            done
+
 orbs:
-  jq: circleci/jq@2.2.0
+  docker-cpu-profiling: mkly/docker-cpu-profiling@0.1.1
+
+jobs:
+  cpu:
+    docker:
+      - image: circleci/node:13.10
+    steps:
+      - checkout
+      - docker-cpu-profiling/profile
+      - run:
+          command: CI=false npm install
 
 workflows:
-  version: 2
-  auto-cancel-example:
+  wf:
     jobs:
-      - failed-job
-      - job-1
-      - job-2
-      - auto-cancel
+      - cpu
