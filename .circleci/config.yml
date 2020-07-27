@@ -1,19 +1,18 @@
 version: 2.1
 
-orbs:
-  docker-cpu-profiling: mkly/docker-cpu-profiling@0.1.1
-
 jobs:
-  cpu:
-    docker:
-      - image: circleci/node:13.10
+  testing:
+    docker: 
+      - image: circleci/python:3
     steps:
       - checkout
-      - docker-cpu-profiling/profile
+      - setup_remote_docker
       - run:
-          command: CI=false npm install
+          name: test
+          command: |
+            docker-compose run tester
 
 workflows:
-  wf:
+  networktest:
     jobs:
-      - cpu
+      - testing
