@@ -1,18 +1,15 @@
 version: 2.1
-
 jobs:
-  testing:
-    docker: 
-      - image: circleci/python:3
+  build:
+    docker:
+    - image: circleci/python:3.6.1
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: test
-          command: |
-            docker-compose run tester
-
+    - run:
+        name: Test
+        command: |
+          sudo pip install pipenv
+          pipenv install flake8 --skip-lock
 workflows:
-  networktest:
+  build-and-deploy:
     jobs:
-      - testing
+    - build
