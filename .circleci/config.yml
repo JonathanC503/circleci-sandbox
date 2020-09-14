@@ -16,4 +16,4 @@ jobs:
           command: ls -la
       - run:
            name: Wait for background task
-           command: cat < wait-for-this-or-that
+           command: cat < wait-for-this
