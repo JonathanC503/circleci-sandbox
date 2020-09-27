@@ -1,19 +1,14 @@
 version: 2.1
+workflows:
+  btd:
+    jobs:
+      - build
 jobs:
   build:
     docker:
-      - image: cimg/base:2020.05
+      - image: cimg/base:stable
+      - image: ratelimitalways/test
     steps:
-      - run: mkfifo wait-for-this
       - run:
-          name: Slow Background Task
-          background: true
-          command: |
-            sleep 10
-            echo 'done' > wait-for-this
-      - run:
-          name: Fast Foreground Task
-          command: ls -la
-      - run:
-           name: Wait for background task
-           command: cat < wait-for-this
+          name: Show storage prefix
+          command: cat /.circleci-runner-config.json  | jq .Dispatched.TaskInfo.Storage
