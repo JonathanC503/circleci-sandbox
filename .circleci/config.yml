@@ -1,27 +1,15 @@
 version: 2.1
-orbs:
-  node: circleci/node@2.1.1
 jobs:
-  build:
+  hello_world:
     docker:
-      - image: cimg/base:2020.05
+      - image: circleci/node:12
     steps:
-      - node/install:
-          install-yarn: true
-          node-version: "11.14.0"
-          yarn-version: "1.22.5"
-      - echo: "If you are reading this, then here we are."
-      - run: mkfifo wait-for-this
+      - checkout
       - run:
-          name: Slow Background Task
-          background: true
-          command: |
-            sleep 10
-            echo 'done' > wait-for-this
-      - run:
-          name: Fast Foreground Task
-          command: ls -la
-      - run:
-           name: Wait for background task
-           command: cat < wait-for-this
+          name: Echo Hello World
+          command: echo "Hello World! This is Pipeline Number:" <<pipeline.number>>
+workflows:
+  wf_hello_world:
+    jobs:
+      - hello_world
      
