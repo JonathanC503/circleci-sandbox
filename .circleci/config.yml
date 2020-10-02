@@ -1,41 +1,50 @@
 version: 2.1
 jobs:
-  build_test:
+  deploy_cicd_app:
     docker:
-      - image: circleci/node:12
+      - image: ariv3ra/terraform-gcp:tf-v0.13.3
     steps:
       - checkout
       - run:
-          name: Install npm dependencies
+          name: Deploy cicd-app to K8s 
           command: |
-            sudo npm install -g
-      - run:
-          name: Run Unit Tests
-          command: |
-            ./node_modules/mocha/bin/mocha test/ --reporter mochawesome --reporter-options reportDir=test-results,reportFilename=test-results
-      - store_test_results:
-          path: test-results
-      - store_artifacts:
-          path: test-results
-  deploy:
+            cd chaos-experiments/
+            ./deploy-cicd.sh ${USER_NAME}
+  chaos_exper1:
     docker:
-      - image: circleci/node:12
+      - image: ariv3ra/terraform-gcp:tf-v0.13.3
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: false
       - run:
-          name: Build Docker image
+          name: "Chaos Experiment #1 - Increase CPU 20 percent for 120 secs"
           command: |
-            export TAG=0.1.<< pipeline.number >>
-            export IMAGE_NAME=$CIRCLE_PROJECT_REPONAME
-            docker build -t $DOCKER_LOGIN/$IMAGE_NAME -t $DOCKER_LOGIN/$IMAGE_NAME:$TAG .
-            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
-            docker push $DOCKER_LOGIN/$IMAGE_NAME
+            cd chaos-experiments/
+            ./experiment1.sh ${GREMLIN_TEAM_ID} ${GREMLIN_API_KEY} ${USER_NAME}
+  chaos_exper2:
+    docker:
+      - image: ariv3ra/terraform-gcp:tf-v0.13.3
+    steps:
+      - checkout
+      - run:
+          name: "Chaos Experiment #2 - Increase CPU 60 percent for 120 secs"
+          command: |
+            cd chaos-experiments/
+            ./experiment2.sh ${GREMLIN_TEAM_ID} ${GREMLIN_API_KEY} ${USER_NAME}
 workflows:
-  build_test_deploy:
+  deploy_chaos:
     jobs:
-      - build_test
-      - deploy:
+      - deploy_cicd_app
+      - exec_exper1:
+          type: approval
           requires:
-            - build_test
+            - deploy_cicd_app      
+      - chaos_exper1:
+          requires:
+            - exec_exper1
+      - exec_exper2:
+          type: approval
+          requires:
+            - chaos_exper1
+      - chaos_exper2:
+          requires:
+            - exec_exper2 
