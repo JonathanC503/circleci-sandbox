@@ -1,29 +1,22 @@
 version: 2.1
-
-orbs:
-  win: circleci/windows@2.2.0
-
-jobs:
-  build:
-    executor:
-      name: win/default
-      shell: powershell.exe
-    steps:
-      - checkout
+jobs: # a basic unit of work in a run
+  build: # runs not using `Workflows` must have a `build` job as entry point
+    macos:  # indicate that we are using the macOS executor
+      xcode: 11.3.0 # indicate our selected version of Xcode
+    steps: # a series of commands to run
+      - checkout  # pull down code from your version control system.
       - run:
-          name: Build image
-          command: |
-              docker build -t yaningo/buildtools2017:latest -m 8GB .
-              
+          # run our tests using xcode's cli tool `xcodebuild`
+          name: Run Unit Tests
+          command: xcodebuild test -scheme circleci-demo-macos
       - run:
-          name: Push image
-          command: |
-              echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
-              docker push yaningo/buildtools2017:latest
-              
+          # build our application
+          name: Build Application
+          command: xcodebuild
       - run:
-          name: Use executable container
-          command: |
-              docker run --rm yaningo/buildtools2017 C:\"Program Files (x86)"\"Microsoft Visual Studio"\2017\BuildTools\Common7\Tools\VsDevCmd.bat
-              docker run --rm yaningo/buildtools2017 C:\"Program Files (x86)"\"Microsoft Visual Studio"\2017\BuildTools\MSBuild\15.0\Bin\MSBuild.exe -version
-              docker run --rm yaningo/buildtools2017 MSBuild -version
+          # compress Xcode's build output so that it can be stored as an artifact
+          name: Compress app for storage
+          command: zip -r app.zip build/Release/circleci-demo-macos.app
+      - store_artifacts: # store this build output. Read more: https://circleci.com/docs/2.0/artifacts/
+          path: app.zip
+          destination: app
