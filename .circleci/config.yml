@@ -12,6 +12,7 @@ jobs:
     steps:
       - browser-tools/install-chrome
       - browser-tools/install-chromedriver
+      - run: sudo rm -rf /var/lib/apt/lists/*
       - run: sudo apt-get update
       - run: sudo apt-get install xvfb
       - run: sudo apt-get install xvfb
