@@ -1,27 +1,19 @@
 version: 2.1
 
 orbs:
-  browser-tools: circleci/browser-tools@1.1.0
+  azure-cli: circleci/azure-cli@1.1.0
 
 jobs:
   build:
     docker:
       - image: circleci/ruby:2.6.5-stretch-node-browsers
-      #- image: circleci/ruby:2.6.5-node-browsers
-      #- image: circleci/node:12-browsers
     steps:
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
-      - run: sudo rm -rf /var/lib/apt/lists/*
-      - run: sudo apt-get update
-      - run: sudo apt-get install xvfb
-      - run: sudo apt-get install xvfb
-      - run: |
-          sudo apt-get -qqy install \
-            ca-certificates \
-            azure-cli
-      - run: xdpyinfo -display :0 >/dev/null 2>&1 && echo "In use" || echo "Free"
-
+      - add_ssh_keys:
+          fingerprints:
+            - "ed:36:c7:0e:10:9e:83:74:68:d9:fc:c1:73:e6:05:1b"
+      - checkout
+      - run: echo "$CIRCLE_WORKFLOW_ID"
+      - run: . ./pipeline_cci.sh
 workflows:
   nightly:
     jobs:
