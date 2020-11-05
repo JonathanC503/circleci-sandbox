@@ -1,23 +1,27 @@
 version: 2.1
+
+orbs:
+  browser-tools: circleci/browser-tools@1.1.0
+
 jobs:
-  docker:
-    working_directory: /opt/build
+  build:
     docker:
-      - image: alpine:3.9
-        environment:
-          ECR_REPOSITORY: <repository>
+      - image: circleci/ruby:2.6.5-stretch-node-browsers
+      #- image: circleci/ruby:2.6.5-node-browsers
+      #- image: circleci/node:12-browsers
     steps:
-      - run:
-        name: Install system dependencies
-        command: |
-          apk add -U git curl openssh tar gzip python3
-          pip3 install awscli
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.8
-      - run:
-        name: Install Docker client
-        command: |
-          VER="19.03.8"
-          curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-          tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      - run: sudo apt-get update
+      - run: sudo apt-get install xvfb
+      - run: sudo apt-get install xvfb
+      - run: |
+          sudo apt-get -qqy install \
+            ca-certificates \
+            azure-cli
+      - run: xdpyinfo -display :0 >/dev/null 2>&1 && echo "In use" || echo "Free"
+
+workflows:
+  nightly:
+    jobs:
+      - build
