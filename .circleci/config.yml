@@ -1,20 +1,21 @@
 version: 2.1
-
 orbs:
-  azure-cli: circleci/azure-cli@1.1.0
-
+  node: circleci/node@1.1.6
 jobs:
-  build:
-    docker:
-      - image: circleci/ruby:2.6.5-stretch-node-browsers
+  build-and-release:
+    executor:
+      name: node/default
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "ed:36:c7:0e:10:9e:83:74:68:d9:fc:c1:73:e6:05:1b"
       - checkout
-      - run: echo "$CIRCLE_WORKFLOW_ID"
-      - run: . ./pipeline_cci.sh
+      - node/with-cache:
+          steps:
+            - run: npm install
+            - run: sudo npm install -g react-native-cli
+            - run: sudo npm install -g detox-cli
+            - run: sudo npm install -g expo-cli
+            - run: npx expo login -u $EXPO_LOGIN -p $EXPO_PWD
+            - run: npx expo publish --non-interactive --max-workers 1 --release-channel dev
 workflows:
-  nightly:
-    jobs:
-      - build
+    build-and-release:
+      jobs:
+        - build-and-release
