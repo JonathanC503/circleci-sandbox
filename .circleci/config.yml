@@ -1,21 +1,12 @@
 version: 2.1
 orbs:
-  node: circleci/node@1.1.6
+  win: circleci/windows@2.4.0
 jobs:
-  build-and-release:
-    executor:
-      name: node/default
+  build:
+    executor: win/gpu-nvidia
     steps:
-      - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: sudo npm install -g react-native-cli
-            - run: sudo npm install -g detox-cli
-            - run: sudo npm install -g expo-cli
-            - run: npx expo login -u $EXPO_LOGIN -p $EXPO_PWD
-            - run: npx expo publish --non-interactive --max-workers 1 --release-channel dev
-workflows:
-    build-and-release:
-      jobs:
-        - build-and-release
+      - run: '&"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"'
+      - run:
+          name: Set Resolution to 1920x1080
+          shell: powershell.exe
+          command: Set-DisplayResolution -Width 1920 -Height 1080 -Force
