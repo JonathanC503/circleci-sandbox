@@ -7,11 +7,11 @@ jobs:
         type: string
         default: "first step"
     docker: 
-      - image: cimg/node
+      - image: cimg/node:14.10.1
     steps:
       - add_ssh_keys
       - run: echo This is my << parameters.first-step >>
-      - echo "this is my second step"
+      - run: echo "this is my second step"
       - store_artifacts:
           path: test-results
           destination: results
@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Always run
           command: echo "This should always run"
-          when: failure
+          when: "on_fail"
 
 workflows:
   build-and-deploy:
@@ -42,4 +42,4 @@ workflows:
               ignore: test-branch
       - deploy:
           requires:
-            - builld
+            - build
