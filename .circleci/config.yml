@@ -11,7 +11,7 @@ jobs:
     steps:
       - add_ssh_keys
       - run: echo This is my << parameters.first-step >>
-      - echo: "this is my second step"
+      - run: echo "this is my second step"
       - store_artifacts:
           path: test-results
           destination: results
