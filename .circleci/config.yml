@@ -1,12 +1,45 @@
 version: 2.1
-orbs:
-  win: circleci/windows@2.4.0
+
 jobs:
   build:
-    executor: win/gpu-nvidia
+    parameters:
+      first-step:
+        type: string
+        default: "first step"
+    docker: 
+      - image: cimg/node
     steps:
-      - run: '&"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe"'
+      - add_ssh_keys
+      - run: echo This is my << parameters.first-step >>
+      - echo "this is my second step"
+      - store_artifacts:
+          path: test-results
+          destination: results
+
+  deploy:
+    docker: 
+      - image: cimg/node:14.10.1
+    steps:
+      - add_ssh_keys
       - run:
-          name: Set Resolution to 1920x1080
-          shell: powershell.exe
-          command: Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          name: Always run
+          command: echo "This should always run"
+          when: failure
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build:
+          pre-steps:
+            - run:
+                command: |
+                  mkdir test-results
+                  cd test-results
+                  touch results.json
+                  echo results_not_found >> results.json
+          filters:
+            branches:
+              ignore: test-branch
+      - deploy:
+          requires:
+            - builld
