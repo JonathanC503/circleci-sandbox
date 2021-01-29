@@ -12,12 +12,12 @@ jobs:
       - add_ssh_keys
       - run: echo This is my << parameters.first-step >>
       - run: echo "this is my second step"
-      - run:
-          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
-          when: always
       - store_artifacts:
           path: test-results
           destination: results
+      - run:
+          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+          when: always
 
   deploy:
     docker: 
