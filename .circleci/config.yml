@@ -1,48 +1,83 @@
 version: 2.1
 
 jobs:
-  build:
+  windows:
     parameters:
-      first-step:
+      image-tag:
         type: string
-        default: "first step"
-    docker: 
-      - image: cimg/node:14.10.1
+    machine:
+      image: windows-server-2019-vs2019:<< parameters.image-tag >>
+    resource_class: windows.medium
     steps:
-      - add_ssh_keys
-      - run: echo This is my << parameters.first-step >>
-      - run: echo "this is my second step"
       - run:
-          command: cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
-          when: always
+          name: List uninstallers
+          shell: powershell.exe
+          command: |
+            Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Format-Table –AutoSize | Out-File uninstallers-<< parameters.image-tag >>.txt
+      - run:
+          name: List packages installed with chocolatey
+          shell: bash.exe
+          command: choco list --local-only > chocolatey-<< parameters.image-tag >>.txt
+      - run:
+          name: Copy the list of managed components
+          shell: cmd.exe
+          command: cp C:\InstalledSoftware.md installed-<< parameters.image-tag >>.md
       - store_artifacts:
-          path: test-results
-          destination: results
+          path: uninstallers-<< parameters.image-tag >>.txt
+      - store_artifacts:
+          path: chocolatey-<< parameters.image-tag >>.txt
+      - store_artifacts:
+          path: installed-<< parameters.image-tag >>.md
+      - persist_to_workspace:
+          root: .
+          paths:
+            - uninstallers-<< parameters.image-tag >>.txt
+            - chocolatey-<< parameters.image-tag >>.txt
+            - installed-<< parameters.image-tag >>.md
 
-  deploy:
-    docker: 
-      - image: cimg/node:14.10.1
+  compare:
+    parameters:
+      a:
+        type: string
+      b:
+        type: string
+    docker:
+      - image: archlinux/base
     steps:
-      - add_ssh_keys
       - run:
-          name: Always run
-          command: echo "This should always run"
-          when: "on_fail"
+          name: Configure pacman repository
+          command: echo 'Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch' | tee /etc/pacman.d/mirrorlist
+      - run:
+          name: Install tar and diffutils
+          command: pacman -Syu --noconfirm tar diffutils
+      - attach_workspace:
+          at: .
+      - run: ls
+      - run:
+          name: diff uninstallers
+          command: |
+            iconv -f UTF-16LE -t UTF-8 uninstallers-<< parameters.a >>.txt | tail -n +4 | sort -b > uninstallers-<< parameters.a >>.u8.txt
+            iconv -f UTF-16LE -t UTF-8 uninstallers-<< parameters.b >>.txt | tail -n +4 | sort -b > uninstallers-<< parameters.b >>.u8.txt
+            bash -c 'diff -u uninstallers-<< parameters.a >>.u8.txt uninstallers-<< parameters.b >>.u8.txt || true'
+      - run:
+          name: diff chocolatey
+          command: bash -c 'diff -u chocolatey-<< parameters.a >>.txt chocolatey-<< parameters.b >>.txt || true'
+      - run:
+          name: diff installed
+          command: bash -c 'diff -u installed-<< parameters.a >>.md installed-<< parameters.b >>.md || true'
 
 workflows:
-  build-and-deploy:
+  run:
     jobs:
-      - build:
-          pre-steps:
-            - run:
-                command: |
-                  mkdir test-results
-                  cd test-results
-                  touch results.json
-                  echo results_not_found >> results.json
-          filters:
-            branches:
-              ignore: test-branch
-      - deploy:
+      - windows:
+          name: stable
+          image-tag: stable
+      - windows:
+          name: previous
+          image-tag: previous
+      - compare:
+          a: previous
+          b: stable
           requires:
-            - build
+            - stable
+            - previous
