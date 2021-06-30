@@ -8,8 +8,6 @@ library:
         a: previous
         b: stable
         requires: [stable, previous]
-    - publish:
-        requires: [compare]
 jobs:
   list-packages:
     parameters:
